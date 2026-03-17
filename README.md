@@ -1,28 +1,33 @@
-# Mini Data Platform 
+#  Mini Data Platform
 
-## Overview
+##  Overview
 
-This project implements a **Mini Data Platform** using Docker Compose.
-The platform demonstrates how modern data systems ingest, process, store, and visualize data.
+This project implements a **Mini End-to-End Data Platform** using modern data engineering tools.
 
-The system processes **sales data from CSV files**, stores the processed data in PostgreSQL, and visualizes insights using Metabase dashboards.
+It demonstrates how data flows from **raw ingestion → processing → storage → visualization**.
 
-The platform integrates four core components:
-
-* **MinIO** → Object storage for raw data (CSV files)
-* **Apache Airflow** → Data pipeline orchestration
-* **PostgreSQL** → Processed data storage
-* **Metabase** → Data visualization dashboards
+The platform processes **sales data from CSV files**, transforms it using ETL pipelines, stores it in a data warehouse, and visualizes insights through dashboards.
 
 ---
 
-# Architecture
+##  Tech Stack
+
+*  **MinIO** → Object storage (S3-like)
+*  **Apache Airflow** → Workflow orchestration (ETL)
+*  **PostgreSQL** → Data warehouse
+*  **Metabase** → Data visualization
+*  **Docker** → Containerization
+* **Python (Pandas, SQLAlchemy)** → Data processing
+
+---
+
+#  Architecture
 
 ```
-        +----------------------+
-        |  Data Generator      |
-        | (generate_sample_data.py)
-        +-----------+----------+
+        +----------------------------+
+        |  Data Generator            |
+        | (generate_sample_data.py)  | 
+        +-----------+----------------+
                     |
                     v
               +-----------+
@@ -51,130 +56,115 @@ The platform integrates four core components:
 
 ---
 
-# Project Components
+#  Screenshots
 
-## 1️. MinIO (Object Storage)
+##  Docker Containers Running
 
-MinIO stores raw CSV files similar to AWS S3.
-
-Example stored file:
-
-```
-sales_data.csv
-```
-
-MinIO Console:
-
-```
-http://localhost:9001
-```
+![Docker Containers](screenshots/docker_containers.png)
 
 ---
 
-## 2️. Apache Airflow (Data Processing)
+##  Airflow ETL Pipeline
 
-Airflow orchestrates the ETL pipeline.
-
-Pipeline:
+DAG showing:
 
 ```
 extract → transform → load
 ```
 
-Airflow UI:
-
-```
-http://localhost:8080
-```
-
-### Pipeline Tasks
-
-**Extract**
-
-* Download CSV file from MinIO
-* Load data into a Pandas DataFrame
-
-**Transform**
-
-* Clean data
-* Validate schema
-* Format columns
-
-**Load**
-
-* Insert processed records into PostgreSQL
+![Airflow Pipeline](screenshots/airflow_pipeline.jpeg)
 
 ---
 
-## 3️. PostgreSQL (Data Storage)
+##  MinIO Object Storage
 
-Processed data is stored in PostgreSQL.
+CSV file stored in bucket:
 
-Database table:
-
-```
-sales
-```
-
-Columns:
-
-| Column      | Description             |
-| ----------- | ----------------------- |
-| order_id    | unique order identifier |
-| customer_id | customer identifier     |
-| product     | product name            |
-| amount      | sales amount            |
-| region      | sales region            |
-| order_date  | order timestamp         |
-| created_at  | ingestion timestamp     |
+![MinIO Bucket](screenshots/minio_bucket.jpeg)
 
 ---
 
-## 4️. Metabase (Visualization)
+##  PostgreSQL Data Verification
 
-Metabase connects to PostgreSQL and provides dashboards.
+Data successfully loaded into warehouse:
 
-Metabase UI:
-
-```
-http://localhost:3000
-```
+![Postgres Data](screenshots/postgres_data.png)
 
 ---
 
-# Dashboard
+##  Metabase Dashboard
 
-The **Sales Analytics Dashboard** provides insights into the processed data.
+Final analytics dashboard:
 
-Charts included:
+* Total Sales
+* Sales by Product
+* Sales by Region
+* Daily Sales Trend
 
-### Total Sales
-
-Displays overall revenue.
-
-### Sales by Product
-
-Bar chart showing performance of each product.
-
-### Sales by Region
-
-Pie chart showing geographic distribution.
-
-### Daily Sales Trend
-
-Line chart displaying sales growth over time.
+![Metabase Dashboard](screenshots/metabase_dashboard.png)
 
 ---
 
-# Folder Structure
+#  Project Components
+
+## 1️. MinIO (Object Storage)
+
+Stores raw CSV data similar to AWS S3.
+
+* URL: [http://localhost:9001](http://localhost:9001)
+* Bucket: `sales-data`
+* File: `sales_data.csv`
+
+---
+
+## 2️. Apache Airflow (ETL Orchestration)
+
+Manages the pipeline:
+
+```
+extract → transform → load
+```
+
+* URL: [http://localhost:8080](http://localhost:8080)
+
+### Tasks:
+
+* **Extract** → Download from MinIO
+* **Transform** → Clean & validate data
+* **Load** → Insert into PostgreSQL
+
+---
+
+## 3️. PostgreSQL (Data Warehouse)
+
+Stores structured data.
+
+**Table: `sales`**
+
+| Column      | Description    |
+| ----------- | -------------- |
+| order_id    | Unique ID      |
+| customer_id | Customer       |
+| product     | Product name   |
+| amount      | Sales value    |
+| region      | Location       |
+| order_date  | Date           |
+| created_at  | Load timestamp |
+
+---
+
+## 4. Metabase (BI Dashboard)
+
+Visualizes data with interactive dashboards.
+
+* URL: [http://localhost:3000](http://localhost:3000)
+
+---
+
+#  Project Structure
 
 ```
 mini-data-platform/
-│
-├── docker-compose.yml
-├── .env
-├── requirements.txt
-├── README.md
 │
 ├── dags/
 │   └── sales_pipeline.py
@@ -193,43 +183,50 @@ mini-data-platform/
 │   └── sales_data.csv
 │
 ├── sql/
-│   └── init_schema.sql
+│   ├── init_schema.sql
+│   └── queries.sql
 │
-└── tests/
-    └── test_transform.py
+├── tests/
+│   └── test_transform.py
+│
+├── screenshots/
+│   ├── docker_containers.png
+│   ├── airflow_pipeline.jpeg
+│   ├── minio_bucket.jpeg
+│   ├── postgres_data.png
+│   └── metabase_dashboard.png
+│
+├── .github/workflows/
+│   └── pipeline.yml
+│
+├── docker-compose.yml
+├── requirements.txt
+├── Makefile
+└── README.md
 ```
 
 ---
 
-# Setup Instructions
+#  Setup Instructions
 
-## 1️. Clone Repository
+## 1. Clone Repo
 
-```
-git clone https://github.com/your-repo/mini-data-platform.git
+```bash
+git clone https://github.com/Damas200/mini-data-platform.git
 cd mini-data-platform
 ```
 
 ---
 
-## 2️. Start Platform
+## 2. Start Platform
 
-Run:
-
-```
+```bash
 docker compose up -d
 ```
 
-This will start:
-
-* PostgreSQL
-* Airflow
-* MinIO
-* Metabase
-
 ---
 
-## 3️. Access Services
+## 3. Access Services
 
 | Service    | URL                                            |
 | ---------- | ---------------------------------------------- |
@@ -240,107 +237,37 @@ This will start:
 
 ---
 
-# Running the Data Pipeline
+#  Run Pipeline
 
-1️. Upload `sales_data.csv` to MinIO.
-
-2️. Open Airflow UI:
-
-```
-http://localhost:8080
-```
-
-3️. Trigger DAG:
+1. Upload CSV → MinIO
+2. Open Airflow
+3. Trigger DAG:
 
 ```
 sales_etl_pipeline
 ```
 
-Pipeline tasks:
-
-```
-extract → transform → load
-```
-
 ---
 
-# Example Data Flow
+#  Testing
 
-```
-CSV file → MinIO
-        ↓
-Airflow extracts file
-        ↓
-Data is cleaned and validated
-        ↓
-Stored in PostgreSQL
-        ↓
-Metabase visualizes insights
-```
+Run:
 
----
-
-# Testing
-
-Unit tests validate transformation logic.
-
-Run tests:
-
-```
+```bash
 pytest
 ```
 
 ---
 
-# Docker Services
+#  CI/CD Pipeline
 
-Check running containers:
+Automated with GitHub Actions:
 
-```
-docker compose ps
-```
+* Install dependencies
+* Run tests
+* Validate pipeline
 
-Expected services:
-
-```
-postgres
-airflow-webserver
-airflow-scheduler
-minio
-metabase
-```
-
----
-
-# Screenshots
-
-## Airflow Pipeline
-
-```
-extract → transform → load
-```
-
-## MinIO Storage
-
-```
-sales_data.csv stored in bucket
-```
-
-## Metabase Dashboard
-
-Sales Analytics Dashboard.
-
----
-
-# CI/CD Pipeline
-
-GitHub Actions pipeline automates:
-
-* Docker build
-* Unit tests
-* Data pipeline validation
-
-Workflow file:
+File:
 
 ```
 .github/workflows/pipeline.yml
@@ -348,40 +275,39 @@ Workflow file:
 
 ---
 
-# Technologies Used
+# Key Features
 
-* Docker
-* Apache Airflow
-* PostgreSQL
-* MinIO
-* Metabase
-* Python
-* Pandas
-* SQLAlchemy
-
----
-
-# Team Members
-
-| Name            | Role          |
-| --------------- | ------------- |
-| Damas Niyonkuru | Data Engineer |
+* ✅ End-to-End Data Pipeline
+* ✅ Object Storage Integration
+* ✅ Automated ETL with Airflow
+* ✅ Data Warehouse Design
+* ✅ Dashboard Visualization
+* ✅ Dockerized Infrastructure
+* ✅ Unit Testing
+* ✅ CI/CD Pipeline
 
 ---
 
-# Learning Outcomes
+#  Author
 
-This project demonstrates:
-
-* Building a modern **data platform**
-* Designing **ETL pipelines**
-* Working with **object storage**
-* Managing **data warehouses**
-* Creating **analytical dashboards**
+**Damas Niyonkuru**
+Data Engineer
 
 ---
 
-# Conclusion
+#  What I Learned
 
-This project shows how a simple data platform can be built using open-source tools. The architecture demonstrates real-world data engineering practices including data ingestion, processing, storage, and visualization.
+* Building scalable data pipelines
+* Orchestrating workflows with Airflow
+* Working with object storage (MinIO)
+* Designing data warehouses
+* Creating dashboards with Metabase
+
+---
+
+#  Conclusion
+
+This project demonstrates a **real-world data engineering workflow** from ingestion to visualization using modern open-source tools.
+
+It reflects best practices used in production systems and showcases skills required for a **Data Engineer role**.
 
